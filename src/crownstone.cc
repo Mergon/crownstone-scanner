@@ -129,8 +129,13 @@ int main(int argc, char** argv)
   //hide cursor, to make the throbber look nicer.
   cout << "[?25l" << flush;
 
+  bool parse_advertisements = false;
+
   bool print_packet = false;
   bool print_all_scan_responses = false;
+  bool print_reserved = false;
+  bool print_validation = false;
+  bool print_raw_decrypted_data = false;
 
   int i=0;
   while (1) {
@@ -153,9 +158,6 @@ int main(int argc, char** argv)
 
     struct AES_ctx ctx;
     AES_init_ctx(&ctx, key);                                                                                            
-
-    bool parse_advertisements = false;
-    bool print_raw_decrypted_data = true;
 	      
     uint8_t encrypted_data[16];
 
@@ -231,17 +233,36 @@ int main(int argc, char** argv)
 
 	    // data_type in https://github.com/crownstone/bluenet/blob/master/docs/SERVICE_DATA.md 
 	    // is actually a protocol version
-	    uint8_t protocol_version, device_type, switch_state, length;
+	    uint8_t protocol_version, device_type, name_length, service_data_length, data_type;
+	    uint16_t service_uuid;
+	    // for loop, but there should actually be only one, type = 0x16 (service_data_16_bit_UUID)
 	    for(const auto& data: ad.unparsed_data_with_types) {
-	      length = data[3];
+	      service_data_length = data[0];
+	      service_uuid = (data[2] << 8) + data[1];
+	      name_length = data[3];
 	      // note the endianness here!
 	      protocol_version = (data[3] >> 4) & 0x0F;
-//	      switch_state = (data[4] >> 4) & 0x0F;
 	      device_type = data[4] & 0x0F;
 	      memcpy(encrypted_data, &data[5], 16);
 	      AES_ECB_decrypt(&ctx, encrypted_data);
 	      if (encrypted_data[15] == 0xFA) {
-		success = true;
+		// also use device_type to filter scan responses
+		switch(device_type) {
+		case 1: case 2: case 3: case 4:
+		  success = true;
+		  break;
+		default:
+		  success = false;
+		}
+		// also use data_type to filter scan_responses
+		data_type = encrypted_data[0];
+		switch(data_type) {
+		case 0: case 1: case 2: case 3: 
+		  success = success && true;
+		  break;
+		default:
+		  success = false;
+		}
 	      }
 	    }
 	    if (print_all_scan_responses || success) {
@@ -249,7 +270,7 @@ int main(int argc, char** argv)
 	      if (ad.local_name) {
 		cout << "" << ad.local_name->name << " ";
 	      }
-	      cout << '[' << to_hex(length) << "] ";
+	      //cout << '[' << to_hex(name_length) << "] ";
 	      switch(device_type) {
 	      case 1: 
 		cout << "plug";
@@ -274,8 +295,8 @@ int main(int argc, char** argv)
 		} 
 	      }
 
-	      uint8_t data_type;
-	      data_type = encrypted_data[0];
+	      cout << " " << to_hex(service_uuid);
+
 	      cout << ' ';
 	      switch(data_type) {
 	      case 0:
@@ -330,12 +351,16 @@ int main(int argc, char** argv)
 	      uint16_t partial_timestamp = (uint16_t)(partial_timestamp1 << 8) + partial_timestamp0;
 
 	      cout << " time " << (int)partial_timestamp;
-	      
-	      reserved = encrypted_data[14];
-	      cout << " reserved " << (int)reserved;
+	     
+	      if (print_reserved) {
+		reserved = encrypted_data[14];
+		cout << " reserved " << (int)reserved;
+	      }
 
-	      validation = encrypted_data[15];
-	      cout << " validation 0x" << to_hex(validation);
+	      if (print_validation) {
+		validation = encrypted_data[15];
+		cout << " validation 0x" << to_hex(validation);
+	      }
 	      cout << endl;
 
 
