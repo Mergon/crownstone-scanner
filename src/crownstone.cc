@@ -155,6 +155,7 @@ int main(int argc, char** argv)
     AES_init_ctx(&ctx, key);                                                                                            
 
     bool parse_advertisements = false;
+    bool print_raw_decrypted_data = true;
 	      
     uint8_t encrypted_data[16];
 
@@ -214,11 +215,28 @@ int main(int argc, char** argv)
 	else {
 	  bool success = false;
 	  if (ad.unparsed_data_with_types.size() > 0) {
-	    uint8_t data_type, device_type, length;
+
+	    UUID check_uuid("0xC001");
+	    for(const auto & uuid: ad.UUIDs) {
+	      cout << "Service uuid: " << to_str(uuid) << endl;
+	      if (uuid == check_uuid) {
+		cout << "Check!" << endl;
+	      }
+	    }
+	    if (ad.rssi != 127) {
+	      if (ad.rssi > 20) {
+		cout << "RSSI: " << to_hex((uint8_t)ad.rssi) << endl;
+	      }
+	    }
+
+	    // data_type in https://github.com/crownstone/bluenet/blob/master/docs/SERVICE_DATA.md 
+	    // is actually a protocol version
+	    uint8_t protocol_version, device_type, switch_state, length;
 	    for(const auto& data: ad.unparsed_data_with_types) {
 	      length = data[3];
 	      // note the endianness here!
-	      data_type = (data[4] >> 4) & 0x0F;
+	      protocol_version = (data[3] >> 4) & 0x0F;
+//	      switch_state = (data[4] >> 4) & 0x0F;
 	      device_type = data[4] & 0x0F;
 	      memcpy(encrypted_data, &data[5], 16);
 	      AES_ECB_decrypt(&ctx, encrypted_data);
@@ -228,6 +246,9 @@ int main(int argc, char** argv)
 	    }
 	    if (print_all_scan_responses || success) {
 	      cout << ad.address << " ";
+	      if (ad.local_name) {
+		cout << "" << ad.local_name->name << " ";
+	      }
 	      cout << '[' << to_hex(length) << "] ";
 	      switch(device_type) {
 	      case 1: 
@@ -245,6 +266,16 @@ int main(int argc, char** argv)
 	      default:
 		cout << "unknown [" << to_hex(device_type) << ']';
 	      }
+	      // raw decrypted data
+	      if (print_raw_decrypted_data) {
+		cout << " ";
+		for (int i = 0; i < 16; ++i) {
+		  cout << to_hex((uint8_t)encrypted_data[i]);
+		} 
+	      }
+
+	      uint8_t data_type;
+	      data_type = encrypted_data[0];
 	      cout << ' ';
 	      switch(data_type) {
 	      case 0:
@@ -262,11 +293,6 @@ int main(int argc, char** argv)
 	      default:
 		cout << "unknown [" << to_hex(data_type) << ']';
 	      }
-	      /* raw decrypted data
-	      cout << " ";
-	      for (int i = 0; i < 16; ++i) {
-		cout << to_hex((uint8_t)encrypted_data[i]);
-	      } */
 	      
 	      uint8_t crownstone_id, switch_state, flags, temperature, reserved, validation;
 	      crownstone_id = encrypted_data[1];
@@ -278,16 +304,16 @@ int main(int argc, char** argv)
 	      temperature = encrypted_data[4];
 	      cout << " temperature " << (int)temperature;
 
-	      float power_factor = (float)(encrypted_data[5])/127.0;
-	      cout << " power factor " << power_factor;
+	      float power_factor = ((int8_t)(encrypted_data[5]))/127.0;
+	      cout << fixed << setprecision(4) << " power factor " << power_factor;
 
 	      uint8_t power_usage0, power_usage1;
 	      power_usage0 = encrypted_data[6];
 	      power_usage1 = encrypted_data[7];
 
-	      uint16_t power_usage = (uint16_t)(power_usage1 << 8) + power_usage0;
-	      cout << " power[W] " << (float)power_usage / 8.0;
-	      cout << " power[VA] " << (float)power_usage / (8.0 * power_factor);
+	      float power_usage = (int16_t)((power_usage1 << 8) + power_usage0);
+	      cout << fixed << setprecision(4) << " power[W] " << power_usage / 8.0;
+	      cout << fixed << setprecision(4) << " power[VA] " << power_usage / (8.0 * power_factor);
 
 	      uint8_t energy_used0, energy_used1, energy_used2, energy_used3;
 	      energy_used0 = encrypted_data[8];
