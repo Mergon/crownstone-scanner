@@ -59,6 +59,7 @@ int main(int argc, char** argv)
   string key_s;
 
   bool verbose = false;
+  string sep = ";";
 
   while((c=getopt(argc, argv, "!k:hv")) != -1)
   {
@@ -271,75 +272,75 @@ int main(int argc, char** argv)
 	      }
 	    }
 	    if (print_all_scan_responses || success) {
-	      cout << ad.address << " ";
+	      cout << ad.address << sep;
 	      if (ad.local_name) {
-		cout << "" << ad.local_name->name << " ";
+		cout << "" << ad.local_name->name << sep;
 	      }
-	      //cout << '[' << to_hex(name_length) << "] ";
+	      //cout << '[' << to_hex(name_length) << "]" << sep;
 	      switch(device_type) {
 	      case 1: 
-		cout << "plug";
+		cout << (verbose?"plug":"1");
 		break;
 	      case 2:
-		cout << "guidestone";
+		cout << (verbose?"guidestone":"2");
 		break;
 	      case 3:
-		cout << "built-in";
+		cout << (verbose?"built-in":"3");
 		break;
 	      case 4:
-		cout << "dongle";
+		cout << (verbose?"dongle":"4");
 		break;
 	      default:
-		cout << "unknown [" << to_hex(device_type) << ']';
+		cout << (verbose?"unknown [":"u[") << to_hex(device_type) << ']';
 	      }
 	      // raw decrypted data
 	      if (print_raw_decrypted_data) {
-		cout << " ";
+		cout << sep;
 		for (int i = 0; i < 16; ++i) {
 		  cout << to_hex((uint8_t)encrypted_data[i]);
 		} 
 	      }
 
-	      cout << " " << to_hex(service_uuid);
+	      cout << sep << to_hex(service_uuid);
 
-	      cout << ' ';
+	      cout << sep;
 	      switch(data_type) {
 	      case 0:
-		cout << "state";
+		cout << (verbose?"state":"0");
 		break;
 	      case 1: 
-		cout << "error";
+		cout << (verbose?"error":"1");
 		break;
 	      case 2:
-		cout << "external state";
+		cout << (verbose?"external state":"2");
 		break;
 	      case 3:
-		cout << "external error";
+		cout << (verbose?"external error":"3");
 		break;
 	      default:
-		cout << "unknown [" << to_hex(data_type) << ']';
+		cout << (verbose?"unknown [":"u[") << to_hex(data_type) << ']';
 	      }
 	      
 	      uint8_t crownstone_id, switch_state, flags, temperature, reserved, validation;
 	      crownstone_id = encrypted_data[1];
-	      cout << " id " << (int)crownstone_id;
+	      cout << sep << (verbose?"id":"") << (verbose?sep:"") << (int)crownstone_id;
 	      switch_state = encrypted_data[2];
-	      cout << " switch state " << (int)switch_state;
+	      cout << sep << (verbose?"switch state":"") << (verbose?sep:"") << (int)switch_state;
 	      flags = encrypted_data[3];
-	      cout << " flags " << (int)flags;
+	      cout << sep << (verbose?"flags":"") << (verbose?sep:"") << (int)flags;
 	      temperature = encrypted_data[4];
-	      cout << " temperature " << (int)temperature;
+	      cout << sep << (verbose?"temperature":"") << (verbose?sep:"") << (int)temperature;
 
 	      float power_factor = ((int8_t)(encrypted_data[5]))/127.0;
-	      cout << fixed << setprecision(4) << " power factor " << power_factor;
+	      cout << fixed << setprecision(4) << sep << (verbose?"power factor":"") << (verbose?sep:"") << power_factor;
 
 	      uint8_t power_usage0, power_usage1;
 	      power_usage0 = encrypted_data[6];
 	      power_usage1 = encrypted_data[7];
 
 	      float power_usage = (int16_t)((power_usage1 << 8) + power_usage0);
-	      cout << fixed << setprecision(4) << " power[W] " << power_usage / 8.0;
-	      cout << fixed << setprecision(4) << " power[VA] " << power_usage / (8.0 * power_factor);
+	      cout << fixed << setprecision(4) << sep << (verbose?"power[W]":"") << (verbose?sep:"") << power_usage / 8.0;
+	      cout << fixed << setprecision(4) << sep << (verbose?"power[VA]":"") << (verbose?sep:"") << power_usage / (8.0 * power_factor);
 
 	      uint8_t energy_used0, energy_used1, energy_used2, energy_used3;
 	      energy_used0 = encrypted_data[8];
@@ -348,23 +349,23 @@ int main(int argc, char** argv)
 	      energy_used3 = encrypted_data[11];
 
 	      uint32_t energy_used = (uint32_t)(energy_used3 << 24) + (uint32_t)(energy_used2 << 16) + (uint32_t)(energy_used1 << 8) + energy_used0;
-	      cout << " energy_used " << energy_used;
+	      cout << sep << (verbose?"energy_used":"") << (verbose?sep:"") << energy_used;
 	      
 	      uint8_t partial_timestamp0, partial_timestamp1;
 	      partial_timestamp0 = encrypted_data[12];
 	      partial_timestamp1 = encrypted_data[13];
 	      uint16_t partial_timestamp = (uint16_t)(partial_timestamp1 << 8) + partial_timestamp0;
 
-	      cout << " time " << (int)partial_timestamp;
+	      cout << sep << (verbose?"time":"") << (verbose?sep:"") << (int)partial_timestamp;
 	     
 	      if (print_reserved) {
 		reserved = encrypted_data[14];
-		cout << " reserved " << (int)reserved;
+		cout << sep << (verbose?"reserved":"") << (verbose?sep:"") << (int)reserved;
 	      }
 
 	      if (print_validation) {
 		validation = encrypted_data[15];
-		cout << " validation 0x" << to_hex(validation);
+		cout << sep << (verbose?"validation 0x":"") << (verbose?sep:"") << to_hex(validation);
 	      }
 	      cout << endl;
 
