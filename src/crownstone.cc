@@ -58,7 +58,9 @@ int main(int argc, char** argv)
 
   string key_s;
 
-  while((c=getopt(argc, argv, "!k:h")) != -1)
+  bool verbose = false;
+
+  while((c=getopt(argc, argv, "!k:hv")) != -1)
   {
     switch(c) {
     case 'k':
@@ -67,6 +69,9 @@ int main(int argc, char** argv)
     case 'h':
       cout << "Usage: " << argv[0] << " " << help;
       return 0;
+    case 'v':
+      verbose = true;
+      break;
     case '?':
       if (optopt == 'k') {
 	cerr << "Option k requires an argument (key)" << endl;
