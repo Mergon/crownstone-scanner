@@ -20,6 +20,8 @@
 #include <unistd.h>
 #include <vector>
 
+
+
 using namespace std;
 using namespace BLEPP;
 
@@ -357,6 +359,8 @@ int main(int argc, char** argv)
 	      uint16_t partial_timestamp = (uint16_t)(partial_timestamp1 << 8) + partial_timestamp0;
 
 	      cout << sep << (verbose?"time":"") << (verbose?sep:"") << (int)partial_timestamp;
+
+              cout << sep << (verbose?"localtime":"") << (verbose?sep:"") << (int)time(NULL);
 	     
 	      if (print_reserved) {
 		reserved = encrypted_data[14];
