@@ -62,6 +62,8 @@ int main(int argc, char** argv)
 
   bool verbose = false;
   string sep = ";";
+  
+  bool send = false;
 
   while((c=getopt(argc, argv, "!k:hv")) != -1)
   {
@@ -75,6 +77,9 @@ int main(int argc, char** argv)
     case 'v':
       verbose = true;
       break;
+	case 's':
+	  send = true;
+	  break;
     case '?':
       if (optopt == 'k') {
 	cerr << "Option k requires an argument (key)" << endl;
@@ -360,7 +365,31 @@ int main(int argc, char** argv)
 
 	      cout << sep << (verbose?"time":"") << (verbose?sep:"") << (int)partial_timestamp;
 
-              cout << sep << (verbose?"localtime":"") << (verbose?sep:"") << (int)time(NULL);
+          cout << sep << (verbose?"localtime":"") << (verbose?sep:"") << (int)time(NULL);
+		  
+		  
+		  // Generate JSON
+		  if (send) {
+		  ostringstream jsonStream;
+		  jsonStream << "{\"MAC Address\":\"" << ad.address
+			  << "\",\"Device Name\":\"" << ad.local_name->name
+				  << "\",\"Device Type\":\"" << (int)device_type
+				  << "\",\"BLE Service\":\"" << to_hex(service_uuid)
+				  << "\",\"Data Type\":\"" << (int)data_type
+				  << "\",\"Crown ID\":\"" << (int)crownstone_id
+				  << "\",\"Switch State\":\"" << (int)switch_state
+				  << "\",\"Flags\":\"" << (int)flags
+				  << "\",\"Temperature\":\"" << (int)temperature
+				  << "\",\"Power Factor\":\"" << power_factor
+				  << "\",\"Power Usage\":\"" << power_usage
+				  << "\",\"Energy Used\":\"" << energy_used
+				  << "\",\"LSB Timestamp\":\"" << (int)partial_timestamp
+				  << "\",\"Local Timestamp\":\"" << (int)time(NULL)
+				  << "\"}";
+		  string json = jsonStream.str();
+		  //cout << endl << json;
+	  }
+		  	  
 	     
 	      if (print_reserved) {
 		reserved = encrypted_data[14];
