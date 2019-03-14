@@ -8,7 +8,8 @@
 #include <bluetooth/hci_lib.h>
 #include <boost/optional.hpp>
 #include <cerrno>
-#include <ctime> 
+#include <ctime>
+#include <curl/curl.h>
 #include <iomanip>
 #include <map>
 #include <signal.h>
@@ -46,7 +47,6 @@ void print_time() {
 
 int main(int argc, char** argv)
 {
-
   HCIScanner::ScanType type = HCIScanner::ScanType::Active;
   HCIScanner::FilterDuplicates filter = HCIScanner::FilterDuplicates::Software;
   int c;
@@ -65,7 +65,7 @@ int main(int argc, char** argv)
   
   bool send = false;
 
-  while((c=getopt(argc, argv, "!k:hv")) != -1)
+  while((c=getopt(argc, argv, "!k:hvs")) != -1)
   {
     switch(c) {
     case 'k':
@@ -90,6 +90,20 @@ int main(int argc, char** argv)
       return 1;
     }
   }
+  
+	// Launch Libcurl
+	CURL *easyhandle;
+	if (send) {
+	curl_global_init(CURL_GLOBAL_ALL);
+	easyhandle = curl_easy_init();
+	curl_easy_setopt(easyhandle, CURLOPT_URL, "https://datastone.interlunium.nl/whatever");
+	curl_easy_setopt(easyhandle, CURLOPT_PROXYUSERPWD, "merijn:Couch4Meri!");
+	struct curl_slist *headers=NULL;
+	headers = curl_slist_append(headers, "Content-Type: application/json");
+	headers = curl_slist_append(headers, "charset=UTF-8");
+	curl_easy_setopt(easyhandle, CURLOPT_HTTPHEADER, headers);
+}
+  
   if (key_s.size() != 32) {
     cout << "Key should be present and have 16 digits (size = " << key_s.size() << ")" << endl;
     return 1;
@@ -367,28 +381,6 @@ int main(int argc, char** argv)
 
           cout << sep << (verbose?"localtime":"") << (verbose?sep:"") << (int)time(NULL);
 		  
-		  
-		  // Generate JSON
-		  if (send) {
-		  ostringstream jsonStream;
-		  jsonStream << "{\"MAC Address\":\"" << ad.address
-			  << "\",\"Device Name\":\"" << ad.local_name->name
-				  << "\",\"Device Type\":\"" << (int)device_type
-				  << "\",\"BLE Service\":\"" << to_hex(service_uuid)
-				  << "\",\"Data Type\":\"" << (int)data_type
-				  << "\",\"Crown ID\":\"" << (int)crownstone_id
-				  << "\",\"Switch State\":\"" << (int)switch_state
-				  << "\",\"Flags\":\"" << (int)flags
-				  << "\",\"Temperature\":\"" << (int)temperature
-				  << "\",\"Power Factor\":\"" << power_factor
-				  << "\",\"Power Usage\":\"" << power_usage
-				  << "\",\"Energy Used\":\"" << energy_used
-				  << "\",\"LSB Timestamp\":\"" << (int)partial_timestamp
-				  << "\",\"Local Timestamp\":\"" << (int)time(NULL)
-				  << "\"}";
-		  string json = jsonStream.str();
-		  //cout << endl << json;
-	  }
 		  	  
 	     
 	      if (print_reserved) {
@@ -401,8 +393,36 @@ int main(int argc, char** argv)
 		cout << sep << (verbose?"validation 0x":"") << (verbose?sep:"") << to_hex(validation);
 	      }
 	      cout << endl;
-
-
+		  
+		  
+		  
+		  // Generate JSON
+		  if (send) {
+		  ostringstream jsonStream;
+		  jsonStream << u8"{\"MAC Address\":\"" << ad.address
+			  << u8"\",\"Device Name\":\"" << ad.local_name->name
+				  << u8"\",\"Device Type\":\"" << (int)device_type
+				  << u8"\",\"BLE Service\":\"" << to_hex(service_uuid)
+				  << u8"\",\"Data Type\":\"" << (int)data_type
+				  << u8"\",\"Crown ID\":\"" << (int)crownstone_id
+				  << u8"\",\"Switch State\":\"" << (int)switch_state
+				  << u8"\",\"Flags\":\"" << (int)flags
+				  << u8"\",\"Temperature\":\"" << (int)temperature
+				  << u8"\",\"Power Factor\":\"" << power_factor
+				  << u8"\",\"Power Usage\":\"" << power_usage
+				  << u8"\",\"Energy Used\":\"" << energy_used
+				  << u8"\",\"LSB Timestamp\":\"" << (int)partial_timestamp
+				  << u8"\",\"Local Timestamp\":\"" << (int)time(NULL)
+				  << u8"\"}";
+		  string json = jsonStream.str();
+		  const char *jsonChar = json.c_str();
+		  //char *jsonCoded = curl_easy_escape(easyhandle, jsonChar, strlen(jsonChar));
+		  cout << jsonChar << endl;
+		  curl_easy_setopt(easyhandle, CURLOPT_POSTFIELDS, jsonChar);
+		  curl_easy_setopt(easyhandle, CURLOPT_POSTFIELDSIZE, strlen(jsonChar));
+		  curl_easy_perform(easyhandle);
+		  cout << endl;
+	  }
 	    }
 	  }
 	}
