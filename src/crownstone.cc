@@ -62,10 +62,10 @@ int main(int argc, char** argv)
 
   bool verbose = false;
   string sep = ";";
-  
+  string database = "default";
   bool send = false;
 
-  while((c=getopt(argc, argv, "!k:hvs")) != -1)
+  while((c=getopt(argc, argv, "!k:hvsd")) != -1)
   {
     switch(c) {
     case 'k':
@@ -79,6 +79,9 @@ int main(int argc, char** argv)
       break;
 	case 's':
 	  send = true;
+	  break;
+	case 'd':
+	  database = argv[0];
 	  break;
     case '?':
       if (optopt == 'k') {
@@ -96,7 +99,8 @@ int main(int argc, char** argv)
 	if (send) {
 	curl_global_init(CURL_GLOBAL_ALL);
 	easyhandle = curl_easy_init();
-	curl_easy_setopt(easyhandle, CURLOPT_URL, "https://datastone.interlunium.nl/whatever");
+	database = "https://datastone.interlunium.nl/" + database;
+	curl_easy_setopt(easyhandle, CURLOPT_URL, database);
 	curl_easy_setopt(easyhandle, CURLOPT_PROXYUSERPWD, "merijn:Couch4Meri!");
 	curl_easy_setopt(easyhandle, CURLOPT_FOLLOWLOCATION, 1);
 	struct curl_slist *headers=NULL;
