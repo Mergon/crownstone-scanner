@@ -81,7 +81,7 @@ int main(int argc, char** argv)
 	  send = true;
 	  break;
 	case 'd':
-	  database = optarg;
+	  database = strdup(optarg);
 	  break;
     case '?':
       if (optopt == 'k') {
