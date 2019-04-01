@@ -98,6 +98,7 @@ int main(int argc, char** argv)
 	easyhandle = curl_easy_init();
 	curl_easy_setopt(easyhandle, CURLOPT_URL, "https://datastone.interlunium.nl/whatever");
 	curl_easy_setopt(easyhandle, CURLOPT_PROXYUSERPWD, "merijn:Couch4Meri!");
+	curl_easy_setopt(easyhandle, CURLOPT_FOLLOWLOCATION, 1);
 	struct curl_slist *headers=NULL;
 	headers = curl_slist_append(headers, "Content-Type: application/json");
 	headers = curl_slist_append(headers, "charset=UTF-8");
