@@ -22,6 +22,6 @@ foreach (binary_src ${BINARIES})
     message(STATUS "Configure \"${binary_name}\" to be created subsequently by make")
 
     add_executable(${binary_name} ${binary_src} ${DEPS})
-    target_link_libraries(${binary_name} ${PROJECT_NAME} ${BLUEZ_LIBRARIES} ${BLEPP_LIBRARIES} ${CURL_LIBRARIES}/)
+    target_link_libraries(${binary_name} ${PROJECT_NAME} ${BLUEZ_LIBRARIES} ${BLEPP_LIBRARIES} ${CURL_LIBRARIES})
 endforeach()
 
