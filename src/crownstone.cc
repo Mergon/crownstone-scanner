@@ -62,7 +62,7 @@ int main(int argc, char** argv)
 
   bool verbose = false;
   string sep = ";";
-  string database = "default";
+  string database = "https://datastone.interlunium.nl/default";
   bool send = false;
 
   while((c=getopt(argc, argv, "!k:hvsd")) != -1)
@@ -99,7 +99,6 @@ int main(int argc, char** argv)
 	if (send) {
 	curl_global_init(CURL_GLOBAL_ALL);
 	easyhandle = curl_easy_init();
-	database = "https://datastone.interlunium.nl/" + database;
 	curl_easy_setopt(easyhandle, CURLOPT_URL, database);
 	curl_easy_setopt(easyhandle, CURLOPT_PROXYUSERPWD, "merijn:Couch4Meri!");
 	curl_easy_setopt(easyhandle, CURLOPT_FOLLOWLOCATION, 1);
