@@ -10,6 +10,7 @@ Very few dependencies are required. The Bluez library is used directly (not comm
 * libblepp 
 
 You can install bluez via your package manager, apt for example.
+Meri says: Don't forget, you need libbluetooth-dev!
 
 To install libblepp:
 
