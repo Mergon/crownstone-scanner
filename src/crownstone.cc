@@ -62,7 +62,7 @@ int main(int argc, char** argv)
 
   bool verbose = false;
   string sep = ";";
-  char *database = strdup("https://datastone.interlunium.nl/default");
+  char *database = strdup("https://datastone-proxy.interlunium.nl/default");
   bool send = false;
 
   while((c=getopt(argc, argv, "!k:hvsd")) != -1)
