@@ -65,7 +65,7 @@ int main(int argc, char** argv)
   char *database = strdup("https://datastone-proxy.interlunium.nl/default");
   bool send = false;
 
-  while((c=getopt(argc, argv, "!k:hvsd")) != -1)
+  while((c=getopt(argc, argv, "!k:hvsd:")) != -1)
   {
     switch(c) {
     case 'k':
