@@ -29,7 +29,7 @@ If you can't install, it's just a `libble++.so` symlink and a `libble++.so.5` fi
 
 The installation is straightforward:
 
-	git clone https://github.com/mrquincle/crownstone-scanner.git
+	git clone https://github.com/mergon/crownstone-scanner.git
 	cd crownstone-scanner
 	mkdir build
 	cd build
